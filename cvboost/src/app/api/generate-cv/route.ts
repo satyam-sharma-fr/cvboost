@@ -2,9 +2,12 @@ import { createClient } from '@/lib/supabase/server'
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Initialize OpenAI client lazily at runtime (not at build time)
+function getOpenAIClient() {
+  return new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  })
+}
 
 const CV_OPTIMIZATION_SYSTEM_PROMPT = `You are an expert ATS (Applicant Tracking System) optimization specialist and professional resume writer with 15+ years of experience in HR and recruitment.
 
@@ -135,6 +138,7 @@ export async function POST(request: Request) {
     // Generate optimized CV with OpenAI
     let optimizedContent
     try {
+      const openai = getOpenAIClient()
       const completion = await openai.chat.completions.create({
         model: 'gpt-4-turbo-preview',
         messages: [
